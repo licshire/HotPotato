@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ViewNavigatorApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
+							xmlns:s="library://ns.adobe.com/flex/spark"
+							firstView="views.HotPotatoHomeView"
+							resizeForSoftKeyboard="true"
+							splashScreenImage="@Embed(source='./assets/potatoSplash.jpg')"
+							splashScreenMinimumDisplayTime="1500"
+							splashScreenScaleMode="none"
+							applicationComplete="applicationCompleteHandler( event )"
+							>
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			import views.HotPotatoHomeView;
+
+			protected function quitApplication( event : Event ) : void
+			{
+				//We should shut down all of the net connections cleanly.
+				//We want to quit, not put the app into the background, we also don't want to save the state.
+				var homeView : HotPotatoHomeView = this.navigator.activeView as HotPotatoHomeView;
+				homeView.breakDown();
+				NativeApplication.nativeApplication.exit();
+			}
+			
+			//We used to actually call the nativeApplication.exit, but instead we'll just let it idle, since it will quit of focus is lost on the desktop.
+			protected function applicationCompleteHandler( event : FlexEvent ) : void
+			{
+				stage.addEventListener( Event.DEACTIVATE, deactivateHandler );
+			}
+			
+			protected function quitButton_clickHandler(event:MouseEvent):void
+			{
+				quitApplication( event );
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<s:actionContent>
+		<s:Button label="Quit" id="quitButton" click="quitButton_clickHandler(event)"/>
+	</s:actionContent>
+	
+</s:ViewNavigatorApplication>

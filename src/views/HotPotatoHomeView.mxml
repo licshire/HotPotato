@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark"
+		title="Lobby">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.vandermore.networking.p2p.RTMFPService;
+			import com.vandermore.networking.p2p.events.MessageEvent;
+			import com.vandermore.networking.p2p.vo.P2PObject;
+			
+			private var neighborTimer : Timer;
+			
+			[Bindable]
+			protected var rtmfpService : RTMFPService;
+			
+			[Bindable]
+			protected var chatText : String = "";
+			
+			protected function joinGame_clickHandler(event:MouseEvent):void
+			{
+				if ( !rtmfpService )
+				{
+					//This will call to start the networking.
+					rtmfpService = new RTMFPService();
+					rtmfpService.userName = username.text;
+					rtmfpService.addEventListener( MessageEvent.MESSAGE_RECEIVED, messageReceived_handler );
+					rtmfpService.connect("Hot Potato");
+				}
+			}
+			
+			protected function messageReceived_handler( event : MessageEvent ) : void
+			{
+//				chatText += ( event.message as P2PObject ).toString() + "\n";
+				chatText += ( event.message as P2PObject ).userName + ": ";
+				chatText += ( event.message as P2PObject ).text + "\n";
+
+			}
+			
+			protected function clearText_clickHandler(event:MouseEvent):void
+			{
+				chatText = "";
+			}
+			
+			protected function chatEnabled( service : RTMFPService ) : Boolean
+			{
+				if ( service )
+					return true;
+				
+				return false;
+			}
+			
+			//Break down the service before we quit.
+			public function breakDown() : void
+			{
+				if ( rtmfpService )
+					rtmfpService.disconnect();
+			}
+			
+		]]>
+	</fx:Script>
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	
+	<s:HGroup verticalAlign="middle">
+		<s:Button label="Find a Game" click="joinGame_clickHandler( event )" 
+				  visible="{!rtmfpService}" includeInLayout="{!rtmfpService}"/>
+		<s:Label text="Connected: { rtmfpService.connected }" />
+		<s:Button label="Send Message" click="{ rtmfpService.sendMessage( chatTextEntry.text ) }" enabled="{ chatEnabled( rtmfpService ) }"/>
+		<s:Button label="Clear Messages" click="clearText_clickHandler(event)" />
+		<s:Spacer width="100%"/>
+		<s:Label visible="{!rtmfpService}" text="Username:" />
+		<s:TextInput visible="{!rtmfpService}" id="username" />
+	</s:HGroup>
+	<s:HGroup verticalAlign="middle" width="100%">
+		<s:Label text="Chat:"/><s:TextInput id="chatTextEntry" width="100%"/>
+	</s:HGroup>
+		<s:HGroup verticalAlign="middle" width="100%" height="100%">
+			<s:TextArea width="80%" height="100%" text="{chatText}"/>
+			<s:VGroup width="20%" height="100%" >
+				<s:Label text="Clients Connected"/>
+				<s:List id="clientList" height="100%" labelField="humanName" dataProvider="{ rtmfpService.connectedPeers }"/>
+			</s:VGroup>
+		</s:HGroup>
+</s:View>
